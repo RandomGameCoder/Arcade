@@ -1,0 +1,26 @@
+/* Style Sheet for the Homepage of Arcade website */
+
+body {
+    background-color: rgb(7, 160, 160);
+}
+
+a {
+    text-decoration: none;
+    color: black;
+}
+
+#navbar {
+    background-color: aqua;
+}
+
+.nav {
+    font-family:Arial, Helvetica, sans-serif;
+    font-size: large;
+    text-decoration: none;
+}
+
+.nav a:hover {
+    font-size: larger;
+    text-decoration: underline;
+    color: aqua;
+}
