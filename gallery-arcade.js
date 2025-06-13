@@ -11,14 +11,32 @@ let canvas;
 let isEntering = false;
 let isExiting = false;
 let animationProgress = 0;
-let entranceAnimationDuration = 180; // In frames (3 seconds at 60fps)
+let entranceAnimationDuration = 120; // In frames (3 seconds at 60fps)
 let exitAnimationDuration = 120; // In frames (2 seconds at 60fps)
-let cameraStartZ = 2000; // Camera starts from far behind
+let cameraStartZ = 1500; // Camera starts from far behind
+
+// Neon sign variables
+let neonSign = {
+  text: "ARCADE GALLERY",
+  x: 0,
+  y: -800, // Start position (hidden above view)
+  targetY: -350, // Final position when lowered
+  width: 900,
+  height: 150,
+  visible: false, // Track visibility
+  animating: false // Track if sign is currently animating
+};
+
+// Add a texture buffer for the neon sign text
+let signTexture;
 
 function setup() {
   // Create canvas inside the container
   canvas = createCanvas(windowWidth, windowHeight, WEBGL);
   canvas.parent(document.querySelector('.canvas-container'));
+  
+  // Create texture for the sign text
+  createSignTexture();
   
   // Create machines in a straight line
   machines = [];
@@ -46,6 +64,28 @@ function setup() {
       return "Exiting...";
     }
   });
+}
+
+function createSignTexture() {
+  // Create a graphics buffer for the sign text
+  signTexture = createGraphics(900, 150);
+  signTexture.background(30, 30, 40);
+  
+  // Draw text onto the buffer
+  signTexture.textSize(70);
+  signTexture.textAlign(CENTER, CENTER);
+  signTexture.textFont('Arial');
+  signTexture.textStyle(BOLD);
+  
+  // Create glow effect
+  for (let i = 10; i > 0; i--) {
+    signTexture.fill(0, 255, 240, 255 / (i * 2));
+    signTexture.text(neonSign.text, signTexture.width/2, signTexture.height/2);
+  }
+  
+  // Main text
+  signTexture.fill(220, 255, 255);
+  signTexture.text(neonSign.text, signTexture.width/2, signTexture.height/2);
 }
 
 function startEnterAnimation() {
@@ -76,6 +116,9 @@ function draw() {
     handleExitAnimation();
   }
   
+  // Update neon sign position
+  updateNeonSign();
+  
   // Smooth scrolling
   scrollOffset = lerp(scrollOffset, targetScrollOffset, 0.08);
   
@@ -86,6 +129,11 @@ function draw() {
   ambientLight(120);
   directionalLight(255, 255, 255, 0, 0.5, -1);
   pointLight(150, 150, 255, scrollOffset, -300, 400);
+  
+  // Draw neon sign only if visible
+  if (neonSign.visible) {
+    drawNeonSign();
+  }
   
   // Draw machines in a line with infinite scrolling
   for (let i = 0; i < machines.length; i++) {
@@ -112,11 +160,34 @@ function handleEntranceAnimation() {
   
   if (animationProgress <= entranceAnimationDuration) {
     // Animate camera moving forward from far behind
-    cameraZ = map(animationProgress, 0, entranceAnimationDuration, cameraStartZ, 600);
+    cameraZ = map(animationProgress, 0, entranceAnimationDuration, cameraStartZ, 800);
     
     // End animation when complete
     if (animationProgress >= entranceAnimationDuration) {
       isEntering = false;
+      // Start the sign animation after camera reaches destination
+      startSignAnimation();
+    }
+  }
+}
+
+function startSignAnimation() {
+  neonSign.visible = true;
+  neonSign.animating = true;
+  neonSign.y = -800; // Start from off-screen
+}
+
+// Update neon sign position in the draw function
+function updateNeonSign() {
+  // Only animate if sign is visible and animating
+  if (neonSign.visible && neonSign.animating) {
+    // Animate sign lowering down
+    neonSign.y = lerp(neonSign.y, neonSign.targetY, 0.05);
+    
+    // Stop animation when close enough to target
+    if (Math.abs(neonSign.y - neonSign.targetY) < 5) {
+      neonSign.animating = false;
+      neonSign.y = neonSign.targetY;
     }
   }
 }
@@ -128,11 +199,50 @@ function handleExitAnimation() {
     // Animate camera moving backward
     cameraZ = map(animationProgress, 0, exitAnimationDuration, 600, cameraStartZ);
     
+    // Hide the sign when exiting
+    if (animationProgress > exitAnimationDuration * 0.3) {
+      neonSign.visible = false;
+    }
+    
     // End animation when complete
     if (animationProgress >= exitAnimationDuration) {
       isExiting = false;
     }
   }
+}
+
+function drawNeonSign() {
+  push();
+  translate(scrollOffset, neonSign.y, -100);
+  
+  // Draw chains/wires holding the sign
+  stroke(180);
+  strokeWeight(3);
+  line(-neonSign.width/2 + 50, 0, -neonSign.width/2 + 50, -200);
+  line(neonSign.width/2 - 50, 0, neonSign.width/2 - 50, -200);
+  
+  // Draw sign backing
+  noStroke();
+  fill(30, 30, 40);
+  box(neonSign.width, neonSign.height, 20);
+  
+  // Draw sign with text texture
+  push();
+  translate(0, 0, 11); // Position it in front of the sign backing
+  texture(signTexture);
+  noStroke();
+  plane(neonSign.width, neonSign.height);
+  pop();
+  
+  // Add outer glow effect to the whole sign
+  push();
+  translate(0, 0, 15);
+  noStroke();
+  fill(0, 255, 240, 20);
+  plane(neonSign.width + 20, neonSign.height + 20);
+  pop();
+  
+  pop(); // End sign group
 }
 
 function drawArcadeMachine() {
@@ -154,32 +264,11 @@ function drawArcadeMachine() {
   pop();
   pop();
   
-  // Marquee - massive (now with text)
+  // Marquee - massive
   push();
   translate(0, -225, 96);
   fill('#1a1d2e');
   box(220, 60, 25);
-  
-  // Add marquee sign text
-  push();
-  translate(0, 0, 13);
-  
-  // Glow effect for text
-  for (let i = 5; i > 0; i--) {
-    fill(0, 255, 234, 255 / (i * 3));
-    textSize(20);
-    textAlign(CENTER, CENTER);
-    textFont('Arial');
-    textStyle(BOLD);
-    text("ARCADE GALLERY", 0, 0);
-    translate(0, 0, 0.2);
-  }
-  
-  // Main neon text
-  fill(0, 255, 234);
-  textSize(20);
-  text("ARCADE GALLERY", 0, 0);
-  pop();
   
   // Add marquee glow
   push();
