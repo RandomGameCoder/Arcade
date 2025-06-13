@@ -1,50 +1,102 @@
 // 3D Arcade Machines Placeholder for Gallery Page
 let machines = [];
-let camAngle = 0;
 let scrollOffset = 0;
 let targetScrollOffset = 0;
+let isDragging = false;
+let lastMouseX = 0;
+let lastTouchX = 0;
+let canvas;
+
+// Animation variables
+let isEntering = false;
+let isExiting = false;
+let animationProgress = 0;
+let entranceAnimationDuration = 180; // In frames (3 seconds at 60fps)
+let exitAnimationDuration = 120; // In frames (2 seconds at 60fps)
+let cameraStartZ = 2000; // Camera starts from far behind
 
 function setup() {
-  createCanvas(windowWidth, windowHeight * 0.8, WEBGL);
+  // Create canvas inside the container
+  canvas = createCanvas(windowWidth, windowHeight, WEBGL);
+  canvas.parent(document.querySelector('.canvas-container'));
   
-  // Create many machines for infinite scrolling effect
+  // Create machines in a straight line
   machines = [];
-  let count = 30;
+  let count = 15;
   let spacing = 400;
   for (let i = 0; i < count; i++) {
     machines.push({
-      x: (i - count/2) * spacing, // Center the machines around 0
-      y: 0,
+      x: (i - count/2) * spacing,
+      y: 40,
       z: 0,
-      w: 200,
-      h: 350,
-      d: 150
+      w: 300,
+      h: 450,
+      d: 200
     });
   }
+  
+  // Start entrance animation
+  startEnterAnimation();
+  
+  // Add event listener for page exit
+  window.addEventListener('beforeunload', function() {
+    startExitAnimation();
+    // Delay the actual unload to show the animation
+    if (isExiting && animationProgress < exitAnimationDuration/2) {
+      return "Exiting...";
+    }
+  });
 }
+
+function startEnterAnimation() {
+  isEntering = true;
+  isExiting = false;
+  animationProgress = 0;
+  // Initialize camera position for entrance
+  scrollOffset = 0;
+  cameraZ = cameraStartZ;
+}
+
+function startExitAnimation() {
+  isExiting = true;
+  isEntering = false;
+  animationProgress = 0;
+}
+
+// Variables for camera position
+let cameraZ = 600; // Default camera Z position
 
 function draw() {
   background('#10131a');
   
+  // Handle animations
+  if (isEntering) {
+    handleEntranceAnimation();
+  } else if (isExiting) {
+    handleExitAnimation();
+  }
+  
   // Smooth scrolling
   scrollOffset = lerp(scrollOffset, targetScrollOffset, 0.08);
   
-  // Camera setup - position to see the machines clearly
-  camera(scrollOffset, -150, 700, scrollOffset, 0, 0, 0, 1, 0);
+  // Camera setup - with animated Z position
+  camera(scrollOffset, -200, cameraZ, scrollOffset, 0, 0, 0, 1, 0);
   
   // Lighting
-  ambientLight(80);
+  ambientLight(120);
   directionalLight(255, 255, 255, 0, 0.5, -1);
+  pointLight(150, 150, 255, scrollOffset, -300, 400);
   
-  // Draw machines in a loop for infinite effect
+  // Draw machines in a line with infinite scrolling
   for (let i = 0; i < machines.length; i++) {
     push();
     let m = machines[i];
     translate(m.x, m.y, m.z);
+    
     drawArcadeMachine();
     pop();
     
-    // Create infinite loop effect in both directions
+    // Infinite scrolling effect
     let totalWidth = machines.length * 400;
     if (m.x + 200 < scrollOffset - width) {
       m.x += totalWidth;
@@ -55,47 +107,148 @@ function draw() {
   }
 }
 
+function handleEntranceAnimation() {
+  animationProgress++;
+  
+  if (animationProgress <= entranceAnimationDuration) {
+    // Animate camera moving forward from far behind
+    cameraZ = map(animationProgress, 0, entranceAnimationDuration, cameraStartZ, 600);
+    
+    // End animation when complete
+    if (animationProgress >= entranceAnimationDuration) {
+      isEntering = false;
+    }
+  }
+}
+
+function handleExitAnimation() {
+  animationProgress++;
+  
+  if (animationProgress <= exitAnimationDuration) {
+    // Animate camera moving backward
+    cameraZ = map(animationProgress, 0, exitAnimationDuration, 600, cameraStartZ);
+    
+    // End animation when complete
+    if (animationProgress >= exitAnimationDuration) {
+      isExiting = false;
+    }
+  }
+}
+
 function drawArcadeMachine() {
-  // Main body - much larger size
+  // Main body - massive size for packed feeling
   fill('#23263a');
-  box(200, 300, 150);
+  box(300, 450, 200);
   
-  // Screen - much larger
+  // Screen - massive
   push();
-  translate(0, -70, 76);
+  translate(0, -100, 101);
   fill('#000000');
-  box(140, 100, 8);
+  box(220, 150, 10);
+  
+  // Add screen glow effect
+  push();
+  translate(0, 0, 2);
+  fill(0, 191, 174, 30);
+  box(230, 160, 1);
+  pop();
   pop();
   
-  // Marquee - much larger
+  // Marquee - massive (now with text)
   push();
-  translate(0, -150, 71);
-  fill('#00bfae');
-  box(140, 40, 20);
+  translate(0, -225, 96);
+  fill('#1a1d2e');
+  box(220, 60, 25);
+  
+  // Add marquee sign text
+  push();
+  translate(0, 0, 13);
+  
+  // Glow effect for text
+  for (let i = 5; i > 0; i--) {
+    fill(0, 255, 234, 255 / (i * 3));
+    textSize(20);
+    textAlign(CENTER, CENTER);
+    textFont('Arial');
+    textStyle(BOLD);
+    text("ARCADE GALLERY", 0, 0);
+    translate(0, 0, 0.2);
+  }
+  
+  // Main neon text
+  fill(0, 255, 234);
+  textSize(20);
+  text("ARCADE GALLERY", 0, 0);
   pop();
   
-  // Controls - much larger
+  // Add marquee glow
   push();
-  translate(0, 70, 76);
+  translate(0, 0, 15);
+  fill(0, 191, 174, 50);
+  box(230, 70, 5);
+  pop();
+  pop();
+  
+  // Controls - massive
+  push();
+  translate(0, 100, 101);
   fill('#e0e0e0');
-  box(100, 25, 8);
+  box(150, 40, 10);
   pop();
   
-  // Joystick - much larger
+  // Joystick - massive
   push();
-  translate(-30, 85, 82);
+  translate(-45, 120, 108);
   fill('#ff0055');
-  sphere(12);
+  sphere(18);
+  
+  // Joystick base
+  push();
+  translate(0, 8, -8);
+  fill('#333');
+  cylinder(25, 10);
+  pop();
   pop();
   
-  // Buttons - much larger
-  for (let i = 0; i < 3; i++) {
+  // Buttons - massive
+  for (let i = 0; i < 4; i++) {
     push();
-    translate(15 + i*25, 85, 82);
-    fill('#00bfae');
-    sphere(8);
+    translate(20 + i*30, 120, 108);
+    fill(i % 2 ? '#00bfae' : '#ff0055');
+    sphere(12);
     pop();
   }
+  
+  // Side panels for more detail
+  push();
+  translate(-152, 0, 0);
+  fill('#1a1d2e');
+  box(4, 450, 180);
+  pop();
+  
+  push();
+  translate(152, 0, 0);
+  fill('#1a1d2e');
+  box(4, 450, 180);
+  pop();
+}
+
+// Mouse interaction
+function mousePressed() {
+  isDragging = true;
+  lastMouseX = mouseX;
+}
+
+function mouseDragged() {
+  if (isDragging) {
+    let deltaX = mouseX - lastMouseX;
+    targetScrollOffset -= deltaX * 2;
+    lastMouseX = mouseX;
+  }
+}
+
+function mouseReleased() {
+  isDragging = false;
 }
 
 function mouseWheel(event) {
@@ -103,6 +256,29 @@ function mouseWheel(event) {
   return false;
 }
 
+// Touch interaction for mobile devices
+function touchStarted() {
+  if (touches.length === 1) {
+    isDragging = true;
+    lastTouchX = touches[0].x;
+  }
+  return false;
+}
+
+function touchMoved() {
+  if (isDragging && touches.length === 1) {
+    let deltaX = touches[0].x - lastTouchX;
+    targetScrollOffset -= deltaX * 2;
+    lastTouchX = touches[0].x;
+  }
+  return false;
+}
+
+function touchEnded() {
+  isDragging = false;
+  return false;
+}
+
 function windowResized() {
-  resizeCanvas(windowWidth, windowHeight * 0.8);
+  resizeCanvas(windowWidth, windowHeight);
 }
