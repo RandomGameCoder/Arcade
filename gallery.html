@@ -5,8 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Game Gallery - Arcade</title>
-    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="css/style.css">
+    <!-- p5.js core and 3D extension -->
     <script src="https://cdn.jsdelivr.net/npm/p5@1.9.2/lib/p5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.9.2/lib/addons/p5.sound.min.js"></script>
+    <!-- For advanced GLTF/GLB model support -->
+    <script src="https://cdn.jsdelivr.net/npm/p5.3d@0.0.1/p5.3d.js"></script>
+    <!-- Our custom 3D model loader utility -->
+    <script src="js/model-loader.js"></script>
     <style>
         body { 
             overflow: hidden; 
@@ -35,7 +41,7 @@
         <a href="about.html">About</a>
     </nav>
     <div class="canvas-container"></div>
-    <script src="transitions.js"></script>
-    <script src="gallery-arcade.js"></script>
+    <script src="js/transitions.js"></script>
+    <script src="js/components/gallery-arcade.js"></script>
 </body>
 </html>

@@ -1,0 +1,10 @@
+# Placeholder file for texture images
+# Replace this file with actual texture images (.png, .jpg)
+
+# Images should be power-of-two sizes for best performance:
+# 256x256, 512x512, 1024x1024, etc.
+
+# Example textures you might include:
+# - arcade-texture.png - Texture for arcade machine
+# - game-screen.png - Screen display for the arcade machine
+# - floor-texture.jpg - Floor texture for gallery

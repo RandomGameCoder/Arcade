@@ -1,12 +1,16 @@
 <!-- Home Page -->
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
+<head>    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Arcade Home</title>
-    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="css/style.css">
+    <!-- p5.js core and 3D extension -->
     <script src="https://cdn.jsdelivr.net/npm/p5@1.9.2/lib/p5.min.js"></script>
+    <!-- Optional: Add these libraries for more advanced 3D functionality -->
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.9.2/lib/addons/p5.sound.min.js"></script>
+    <!-- Our custom 3D model loader utility -->
+    <script src="js/model-loader.js"></script>
     <style>body { overflow: hidden; }</style>
 </head>
 <body>
@@ -18,7 +22,7 @@
         <h1>Welcome to the Arcade!</h1>
         <p>This website lets you play simple games made with p5.js. Explore the gallery to find a game, or learn more about the project on the About page.</p>
     </main>
-    <script src="transitions.js"></script>
-    <script src="home-bg.js"></script>
+    <script src="js/transitions.js"></script>
+    <script src="js/components/home-bg.js"></script>
 </body>
 </html>
